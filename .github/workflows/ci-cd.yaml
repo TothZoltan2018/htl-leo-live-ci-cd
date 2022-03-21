@@ -1,31 +1,11 @@
-name: Continous Intergration and Deployment
-
+name: Build
 on:
   push:
     branches:
-      - main
-
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out code 🛎
-        uses: actions/checkout@v2
-
-      - name: Setup .NET 5 🔧
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '5.0.x'
-
-      - name: Restore dependencies 🛠
-        run: dotnet restore
-
-      - name: Build app 🚀
-        run: dotnet build -c Release --no-restore
-
-      - name: Run autiomated tests 🧪
-        run: dotnet test -c Release --no-build
-
   sonarcloud:    
     runs-on: windows-latest
     steps:
@@ -55,12 +35,35 @@ jobs:
         run: |
           New-Item -Path .\.sonar\scanner -ItemType Directory
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
-      - name: Build and analyze
+      - name: Build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"TothZoltan2018_htl-leo-live-ci-cd" /o:"tothzoltan2018" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
-          
+      
+      - name: Check out code 🛎
+        uses: actions/checkout@v2
+
+      - name: Setup .NET 5 🔧
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+
+      - name: Restore dependencies 🛠
+        run: dotnet restore
+
+      - name: Build app 🚀
+        run: dotnet build -c Release --no-restore
+
+      - name: Run autiomated tests 🧪
+        run: dotnet test -c Release --no-build
+
+      - name: Analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: powershell
+        run: |		  
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
