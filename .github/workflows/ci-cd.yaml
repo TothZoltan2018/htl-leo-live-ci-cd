@@ -43,8 +43,8 @@ jobs:
         shell: powershell
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"TothZoltan2018_htl-leo-live-ci-cd" /o:"tothzoltan2018" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
-                - name: Check out code 🛎
-
+                
+      - name: Check out code 🛎
         uses: actions/checkout@v2
 
       - name: Setup .NET 5 🔧
@@ -60,5 +60,5 @@ jobs:
 
       - name: Run autiomated tests 🧪
         run: dotnet test -c Release --no-build
-        
+
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
