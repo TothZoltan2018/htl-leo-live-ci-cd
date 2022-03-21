@@ -1,13 +1,32 @@
-name: Build
+name: Continous Intergration and Deployment
+
 on:
   push:
     branches:
       - main
-  pull_request:
-    types: [opened, synchronize, reopened]
+
 jobs:
   build:
-    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code 🛎
+        uses: actions/checkout@v2
+
+      - name: Setup .NET 5 🔧
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+
+      - name: Restore dependencies 🛠
+        run: dotnet restore
+
+      - name: Build app 🚀
+        run: dotnet build -c Release --no-restore
+
+      - name: Run autiomated tests 🧪
+        run: dotnet test -c Release --no-build
+
+  sonarcloud:    
     runs-on: windows-latest
     steps:
       - name: Set up JDK 11
@@ -43,23 +62,5 @@ jobs:
         shell: powershell
         run: |
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"TothZoltan2018_htl-leo-live-ci-cd" /o:"tothzoltan2018" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
-                
-      - name: Check out code 🛎
-        uses: actions/checkout@v2
-
-      - name: Setup .NET 5 🔧
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '5.0.x'
-
-      - name: Restore dependencies 🛠
-        run: dotnet restore
-
-      - name: Build app 🚀
-        run: dotnet build -c Release --no-restore
-
-      - name: Run autiomated tests 🧪
-        run: | 
-          dotnet test -c Release --no-build       
-
+          
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
